@@ -1,16 +1,20 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
-
-
 import dotenv from "dotenv";
-dotenv.config();
+
+dotenv.config(); // Load environment variables
 
 const db = new pg.Client({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // Required for some cloud services
+  connectionString: process.env.DATABASE_URL, // Use Railway database URL
+  ssl: {
+    rejectUnauthorized: false, // Required for Railway
+  },
 });
-db.connect();
+
+db.connect()
+  .then(() => console.log("✅ Connected to PostgreSQL"))
+  .catch((err) => console.error("❌ Database connection error:", err));
 
 const app = express();
 const port = 3000;
