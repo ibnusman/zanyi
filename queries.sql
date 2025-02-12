@@ -3,4 +3,4 @@ CREATE TABLE items (
   title VARCHAR(100) NOT NULL
 );
 
-INSERT INTO items (title) VALUES ('Buy milk'), ('Finish homework');
+INSERT INTO items (title) VALUES ('Deploy Chnages'), ('Add click ');
