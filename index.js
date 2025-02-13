@@ -1,88 +1,63 @@
 import express from "express";
 import bodyParser from "body-parser";
-import pg from "pg";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { connectDB } from "./config/db.js"; // ✅ Correct import
+import Item from "./models/Item.js";
 
-dotenv.config(); // Load environment variables
-
-const db = new pg.Client({
-  connectionString: process.env.DATABASE_URL, // Use Railway database URL
-  ssl: {
-    rejectUnauthorized: false, // Required for Railway
-  },
-});
-
-db.connect()
-  .then(() => console.log("✅ Connected to PostgreSQL"))
-  .catch((err) => console.error("❌ Database connection error:", err));
+dotenv.config();
+connectDB(); // Connect to MongoDB
 
 const app = express();
-const port = 3000;
-
-// const db = new pg.Client({
-//   user: "postgres",
-//   host: "localhost",
-//   database: "zanyi",
-//   password: "1234",
-//   port: 5432,
-// });
-// db.connect();
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-let items = [
-  { id: 1, title: "Add icons" },
-  { id: 2, title: "Deploy V.2" },
-];
-
 app.get("/", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM items ORDER BY id ASC");
-    items = result.rows;
-
-    res.render("index.ejs", {
-      listTitle: "Today",
-      listItems: items,
-    });
+    const items = await Item.find();
+    res.render("index.ejs", { listTitle: "Today", listItems: items });
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    res.status(500).send("Server error");
   }
 });
 
 app.post("/add", async (req, res) => {
-  const item = req.body.newItem;
-  // items.push({title: item});
+  const itemTitle = req.body.newItem;
   try {
-    await db.query("INSERT INTO items (title) VALUES ($1)", [item]);
+    const newItem = new Item({ title: itemTitle });
+    await newItem.save();
     res.redirect("/");
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    res.status(500).send("Error adding item");
   }
 });
 
 app.post("/edit", async (req, res) => {
-  const item = req.body.updatedItemTitle;
-  const id = req.body.updatedItemId;
-
+  const { updatedItemId, updatedItemTitle } = req.body;
   try {
-    await db.query("UPDATE items SET title = ($1) WHERE id = $2", [item, id]);
+    await Item.findByIdAndUpdate(updatedItemId, { title: updatedItemTitle });
     res.redirect("/");
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    res.status(500).send("Error updating item");
   }
 });
 
 app.post("/delete", async (req, res) => {
-  const id = req.body.deleteItemId;
+  const { deleteItemId } = req.body;
   try {
-    await db.query("DELETE FROM items WHERE id = $1", [id]);
+    await Item.findByIdAndDelete(deleteItemId);
     res.redirect("/");
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    res.status(500).send("Error deleting item");
   }
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`🚀 Server running on port ${port}`);
 });
