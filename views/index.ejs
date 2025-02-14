@@ -1,10 +1,13 @@
 <%- include('partials/header.ejs'); -%>
 
-  <div class="box" id="heading">
-    <h1>
-      <%= listTitle %>
-    </h1>
-  </div>
+<div class="box" id="heading">
+  <h1>Welcome, <%= user.name %> 👋</h1> <!-- Add User Name Here -->
+ 
+</div>
+<div class="box" id="heading">
+  
+  <h1><%= listTitle %></h1>
+</div>
   <div class="box">
     <% for(let item of listItems){%>
       <div class="item">

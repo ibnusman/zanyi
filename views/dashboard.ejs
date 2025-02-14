@@ -1,2 +1,9 @@
-<h1>Welcome, <%= user.email %></h1>
-<a href="/logout">Logout</a>
+<%- include('partials/header.ejs'); -%>
+
+<div class="container">
+  <h2>Welcome, User!</h2>
+  <p>You are now logged in.</p>
+  <a href="/logout" class="btn btn-danger">Logout</a>
+</div>
+
+<%- include('partials/footer.ejs'); -%>

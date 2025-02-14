@@ -1,21 +1,27 @@
-import jwt from "jsonwebtoken";  // ✅ Ensure this import exists
-import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js"; // Ensure this is the correct path
 
-dotenv.config();
-
-const authenticateUser = (req, res, next) => {
-  const token = req.header("Authorization")?.split(" ")[1];  // ✅ Extract JWT correctly
+const authenticateUser = async (req, res, next) => {
+  const token = req.cookies.jwt; // ✅ Ensure cookies are being used
 
   if (!token) {
-    return res.status(401).json({ message: "Access Denied. No token provided." });
+    return res.redirect("/auth/login"); // 🔹 Redirect to login if no token
   }
 
   try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // 🔥 Fetch user from the database, but only select the `name` field
+    req.user = await User.findById(decoded.id).select("name");
+
+    if (!req.user) {
+      return res.redirect("/auth/login");
+    }
+
     next();
   } catch (err) {
-    res.status(400).json({ message: "Invalid Token" });
+    console.error("Authentication Error:", err);
+    res.redirect("/auth/login");
   }
 };
 
